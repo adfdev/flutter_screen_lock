@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'dot_secret_ui.dart';
+
 import 'circle_input_button.dart';
+import 'dot_secret_ui.dart';
 
 Future showConfirmPasscode({
   @required BuildContext context,
@@ -17,8 +19,8 @@ Future showConfirmPasscode({
   void Function(BuildContext, String) onCompleted,
   Color backgroundColor = Colors.white,
   double backgroundColorOpacity = 0.5,
-  CircleInputButtonConfig circleInputButtonConfig =
-      const CircleInputButtonConfig(),
+  CircleInputButtonConfig circleInputButtonConfig = const CircleInputButtonConfig(),
+  GestureTapCallback onCancel,
 }) {
   return Navigator.of(context).push(
     PageRouteBuilder(
@@ -40,6 +42,7 @@ Future showConfirmPasscode({
           backgroundColor: backgroundColor,
           backgroundColorOpacity: backgroundColorOpacity,
           circleInputButtonConfig: circleInputButtonConfig,
+          onCancel: onCancel,
         );
       },
       transitionsBuilder: (
@@ -79,14 +82,13 @@ Future showLockScreen({
   Widget biometricButton = const Icon(Icons.fingerprint),
   bool canBiometric = false,
   bool showBiometricFirst = false,
-  @Deprecated('use biometricAuthenticate.')
-      void Function(BuildContext) biometricFunction,
+  @Deprecated('use biometricAuthenticate.') void Function(BuildContext) biometricFunction,
   Future<bool> Function(BuildContext) biometricAuthenticate,
   Color backgroundColor = Colors.white,
   double backgroundColorOpacity = 0.5,
-  CircleInputButtonConfig circleInputButtonConfig =
-      const CircleInputButtonConfig(),
+  CircleInputButtonConfig circleInputButtonConfig = const CircleInputButtonConfig(),
   void Function() onUnlocked,
+  GestureTapCallback onCancel,
 }) {
   return Navigator.of(context).push(
     PageRouteBuilder(
@@ -124,6 +126,7 @@ Future showLockScreen({
           backgroundColorOpacity: backgroundColorOpacity,
           circleInputButtonConfig: circleInputButtonConfig,
           onUnlocked: onUnlocked,
+          onCancel: onCancel,
         );
       },
       transitionsBuilder: (
@@ -173,6 +176,7 @@ class LockScreen extends StatefulWidget {
   final Color backgroundColor;
   final double backgroundColorOpacity;
   final void Function() onUnlocked;
+  final GestureTapCallback onCancel;
 
   LockScreen({
     this.correctString,
@@ -196,6 +200,7 @@ class LockScreen extends StatefulWidget {
     this.backgroundColor = Colors.white,
     this.backgroundColorOpacity = 0.5,
     this.onUnlocked,
+    this.onCancel,
   });
 
   @override
@@ -205,12 +210,9 @@ class LockScreen extends StatefulWidget {
 class _LockScreenState extends State<LockScreen> {
   // receive from circle input button
   final StreamController<String> enteredStream = StreamController<String>();
-  final StreamController<void> removedStreamController =
-      StreamController<void>();
-  final StreamController<int> enteredLengthStream =
-      StreamController<int>.broadcast();
-  final StreamController<bool> validateStreamController =
-      StreamController<bool>();
+  final StreamController<void> removedStreamController = StreamController<void>();
+  final StreamController<int> enteredLengthStream = StreamController<int>.broadcast();
+  final StreamController<bool> validateStreamController = StreamController<bool>();
 
   // control for Android back button
   bool _needClose = false;
@@ -375,12 +377,12 @@ class _LockScreenState extends State<LockScreen> {
         return false;
       },
       child: Scaffold(
-        backgroundColor:
-            widget.backgroundColor.withOpacity(widget.backgroundColorOpacity),
+        backgroundColor: widget.backgroundColor.withOpacity(widget.backgroundColorOpacity),
         body: SafeArea(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 3.5, sigmaY: 3.5),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 _buildTitle(),
                 DotSecretUI(
@@ -493,10 +495,8 @@ class _LockScreenState extends State<LockScreen> {
       child: widget.biometricButton,
       onPressed: () {
         // Maintain compatibility
-        if (widget.biometricFunction == null &&
-            widget.biometricAuthenticate == null) {
-          throw Exception(
-              'specify biometricFunction or biometricAuthenticate.');
+        if (widget.biometricFunction == null && widget.biometricAuthenticate == null) {
+          throw Exception('specify biometricFunction or biometricAuthenticate.');
         } else {
           if (widget.biometricFunction != null) {
             widget.biometricFunction(context);
@@ -559,6 +559,7 @@ class _LockScreenState extends State<LockScreen> {
                   Navigator.of(context).maybePop();
                 }
               }
+              if (widget.onCancel != null) widget.onCancel();
             },
             shape: CircleBorder(
               side: BorderSide(
