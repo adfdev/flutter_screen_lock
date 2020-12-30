@@ -67,12 +67,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   canBiometric: true,
                   // biometricButton is default Icon(Icons.fingerprint)
                   // When you want to change the icon with `BiometricType.face`, etc.
-                  biometricButton: Icon(Icons.face),
                   biometricAuthenticate: (context) async {
                     final localAuth = LocalAuthentication();
                     final didAuthenticate =
-                        await localAuth.authenticateWithBiometrics(
-                            localizedReason: 'Please authenticate');
+                        await localAuth.authenticateWithBiometrics(localizedReason: 'Please authenticate');
 
                     if (didAuthenticate) {
                       return true;
@@ -105,8 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   biometricAuthenticate: (_) async {
                     final localAuth = LocalAuthentication();
                     final didAuthenticate =
-                        await localAuth.authenticateWithBiometrics(
-                            localizedReason: 'Please authenticate');
+                        await localAuth.authenticateWithBiometrics(localizedReason: 'Please authenticate');
 
                     if (didAuthenticate) {
                       return true;

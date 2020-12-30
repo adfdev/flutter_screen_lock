@@ -90,7 +90,7 @@ Future showLockScreen({
   DotSecretConfig dotSecretConfig = const DotSecretConfig(),
   bool canCancel = true,
   void Function(BuildContext, String) onCompleted,
-  Widget biometricButton = const Icon(Icons.fingerprint),
+  Widget Function(Function) biometricButton,
   bool canBiometric = false,
   bool showBiometricFirst = false,
   @Deprecated('use biometricAuthenticate.') void Function(BuildContext) biometricFunction,
@@ -185,7 +185,7 @@ class LockScreen extends StatefulWidget {
   final bool canCancel;
   final String cancelText;
   final String deleteText;
-  final Widget biometricButton;
+  final Widget Function(Function) biometricButton;
   final void Function(BuildContext, String) onCompleted;
   final bool canBiometric;
   final bool showBiometricFirst;
@@ -214,7 +214,7 @@ class LockScreen extends StatefulWidget {
     this.canCancel = true,
     this.cancelText,
     this.deleteText,
-    this.biometricButton = const Icon(Icons.fingerprint),
+    this.biometricButton,
     this.onCompleted,
     this.canBiometric = false,
     this.showBiometricFirst = false,
@@ -522,37 +522,34 @@ class _LockScreenState extends State<LockScreen> {
   Widget _biometricButton() {
     if (!widget.canBiometric) return Container();
 
+    void onPressed() {
+      // Maintain compatibility
+      if (widget.biometricFunction == null && widget.biometricAuthenticate == null) {
+        throw Exception('specify biometricFunction or biometricAuthenticate.');
+      } else {
+        if (widget.biometricFunction != null) {
+          widget.biometricFunction(context);
+        }
+
+        if (widget.biometricAuthenticate != null) {
+          widget.biometricAuthenticate(context).then((unlocked) {
+            if (unlocked) {
+              if (widget.onUnlocked != null) {
+                widget.onUnlocked();
+              }
+
+              Navigator.of(context).pop();
+            }
+          });
+        }
+      }
+    }
+
+    if (widget.biometricButton != null) return widget.biometricButton(onPressed);
     return FlatButton(
       padding: EdgeInsets.all(0.0),
-      child: widget.biometricButton,
-      onPressed: () {
-        // Maintain compatibility
-        if (widget.biometricFunction == null && widget.biometricAuthenticate == null) {
-          throw Exception('specify biometricFunction or biometricAuthenticate.');
-        } else {
-          if (widget.biometricFunction != null) {
-            widget.biometricFunction(context);
-          }
-
-          if (widget.biometricAuthenticate != null) {
-            widget.biometricAuthenticate(context).then((unlocked) {
-              if (unlocked) {
-                if (widget.onUnlocked != null) {
-                  widget.onUnlocked();
-                }
-
-                Navigator.of(context).pop();
-              }
-            });
-          }
-        }
-      },
-      shape: CircleBorder(
-        side: BorderSide(
-          color: Colors.transparent,
-          style: BorderStyle.solid,
-        ),
-      ),
+      child: Icon(Icons.fingerprint),
+      onPressed: onPressed,
       color: Colors.transparent,
     );
   }
