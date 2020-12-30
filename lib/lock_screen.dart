@@ -515,12 +515,6 @@ class _LockScreenState extends State<LockScreen> {
           }
         }
       },
-      shape: CircleBorder(
-        side: BorderSide(
-          color: Colors.transparent,
-          style: BorderStyle.solid,
-        ),
-      ),
       color: Colors.transparent,
     );
   }
@@ -561,12 +555,6 @@ class _LockScreenState extends State<LockScreen> {
               }
               if (widget.onCancel != null) widget.onCancel();
             },
-            shape: CircleBorder(
-              side: BorderSide(
-                color: Colors.transparent,
-                style: BorderStyle.solid,
-              ),
-            ),
             color: Colors.transparent,
           );
         });
