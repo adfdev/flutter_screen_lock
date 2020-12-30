@@ -24,6 +24,9 @@ Future showConfirmPasscode({
   Widget rightButton,
   Widget Function(Function) deleteButton,
   Widget Function(Function) cancelButton,
+  GestureTapCallback onInputPressed,
+  GestureTapCallback onValid,
+  GestureTapCallback onInvalid,
 }) {
   return Navigator.of(context).push(
     PageRouteBuilder(
@@ -48,6 +51,9 @@ Future showConfirmPasscode({
           onCancel: onCancel,
           deleteButton: deleteButton,
           cancelButton: cancelButton,
+          onInputPressed: onInputPressed,
+          onValid: onValid,
+          onInvalid: onInvalid,
         );
       },
       transitionsBuilder: (
@@ -96,6 +102,9 @@ Future showLockScreen({
   GestureTapCallback onCancel,
   Widget Function(Function) deleteButton,
   Widget Function(Function) cancelButton,
+  GestureTapCallback onInputPressed,
+  GestureTapCallback onValid,
+  GestureTapCallback onInvalid,
 }) {
   return Navigator.of(context).push(
     PageRouteBuilder(
@@ -136,6 +145,9 @@ Future showLockScreen({
           onCancel: onCancel,
           deleteButton: deleteButton,
           cancelButton: cancelButton,
+          onInputPressed: onInputPressed,
+          onValid: onValid,
+          onInvalid: onInvalid,
         );
       },
       transitionsBuilder: (
@@ -187,6 +199,9 @@ class LockScreen extends StatefulWidget {
   final GestureTapCallback onCancel;
   final Widget Function(Function) deleteButton;
   final Widget Function(Function) cancelButton;
+  final GestureTapCallback onInputPressed;
+  final GestureTapCallback onValid;
+  final GestureTapCallback onInvalid;
 
   LockScreen({
     this.correctString,
@@ -212,6 +227,9 @@ class LockScreen extends StatefulWidget {
     this.onCancel,
     this.deleteButton,
     this.cancelButton,
+    this.onInputPressed,
+    this.onValid,
+    this.onInvalid,
   });
 
   @override
@@ -347,6 +365,7 @@ class _LockScreenState extends State<LockScreen> {
       }
 
       if (enteredValue == _verifyPasscode) {
+        if (widget.onValid != null) widget.onValid();
         // send valid status to DotSecretUI
         validateStreamController.add(true);
         enteredValues.clear();
@@ -364,6 +383,7 @@ class _LockScreenState extends State<LockScreen> {
           widget.onUnlocked();
         }
       } else {
+        if (widget.onInvalid != null) widget.onInvalid();
         // send invalid status to DotSecretUI
         validateStreamController.add(false);
         enteredValues.clear();
@@ -475,6 +495,7 @@ class _LockScreenState extends State<LockScreen> {
         enteredSink: enteredStream.sink,
         text: number,
         config: widget.circleInputButtonConfig,
+        callback: widget.onInputPressed,
       ),
     );
   }

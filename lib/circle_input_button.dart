@@ -21,11 +21,13 @@ class CircleInputButton extends StatelessWidget {
 
   final String text;
   final Sink<String> enteredSink;
+  final GestureTapCallback callback;
 
   CircleInputButton({
     @required this.text,
     @required this.enteredSink,
     this.config = const CircleInputButtonConfig(),
+    @required this.callback,
   });
 
   @override
@@ -42,6 +44,7 @@ class CircleInputButton extends StatelessWidget {
       ),
       onPressed: () {
         enteredSink.add(text);
+        if (callback != null) callback();
       },
       shape: config.shape ??
           CircleBorder(
