@@ -94,7 +94,7 @@ Future showLockScreen({
   bool canBiometric = false,
   bool showBiometricFirst = false,
   @Deprecated('use biometricAuthenticate.') void Function(BuildContext) biometricFunction,
-  Future<bool> Function(BuildContext) biometricAuthenticate,
+  Future<bool> Function(BuildContext, void Function()) biometricAuthenticate,
   Color backgroundColor = Colors.white,
   double backgroundColorOpacity = 0.5,
   CircleInputButtonConfig circleInputButtonConfig = const CircleInputButtonConfig(),
@@ -191,7 +191,7 @@ class LockScreen extends StatefulWidget {
   final bool showBiometricFirst;
   @Deprecated('use biometricAuthenticate.')
   final void Function(BuildContext) biometricFunction;
-  final Future<bool> Function(BuildContext) biometricAuthenticate;
+  final Future<bool> Function(BuildContext, void Function()) biometricAuthenticate;
   final StreamController<void> showBiometricFirstController;
   final Color backgroundColor;
   final double backgroundColorOpacity;
@@ -254,6 +254,8 @@ class _LockScreenState extends State<LockScreen> {
 
   List<String> enteredValues = <String>[];
 
+  bool isBiometricButtonAllowed = true;
+
   @override
   void initState() {
     super.initState();
@@ -286,7 +288,7 @@ class _LockScreenState extends State<LockScreen> {
         // Set the listener if there is a stream option.
         if (widget.showBiometricFirstController != null) {
           widget.showBiometricFirstController.stream.listen((_) {
-            widget.biometricAuthenticate(context).then((unlocked) {
+            widget.biometricAuthenticate(context, hideBiometricButton).then((unlocked) {
               if (unlocked) {
                 if (widget.onUnlocked != null) {
                   widget.onUnlocked();
@@ -301,7 +303,7 @@ class _LockScreenState extends State<LockScreen> {
           Future.delayed(
             Duration(milliseconds: 350),
             () {
-              widget.biometricAuthenticate(context).then((unlocked) {
+              widget.biometricAuthenticate(context, hideBiometricButton).then((unlocked) {
                 if (unlocked) {
                   if (widget.onUnlocked != null) {
                     widget.onUnlocked();
@@ -315,6 +317,8 @@ class _LockScreenState extends State<LockScreen> {
       }
     }
   }
+
+  void hideBiometricButton() => setState(() => isBiometricButtonAllowed = false);
 
   void _removedStreamListener() {
     if (removedStreamController.hasListener) {
@@ -466,7 +470,7 @@ class _LockScreenState extends State<LockScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: <Widget>[
-                            _buildBothSidesButton(context, _biometricButton()),
+                            _buildBothSidesButton(context, isBiometricButtonAllowed ? _biometricButton() : Container()),
                             _buildNumberTextButton(context, '0'),
                             _buildBothSidesButton(context, _rightSideButton()),
                           ],
@@ -532,7 +536,7 @@ class _LockScreenState extends State<LockScreen> {
         }
 
         if (widget.biometricAuthenticate != null) {
-          widget.biometricAuthenticate(context).then((unlocked) {
+          widget.biometricAuthenticate(context, hideBiometricButton).then((unlocked) {
             if (unlocked) {
               if (widget.onUnlocked != null) {
                 widget.onUnlocked();
