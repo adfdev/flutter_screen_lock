@@ -21,6 +21,9 @@ Future showConfirmPasscode({
   double backgroundColorOpacity = 0.5,
   CircleInputButtonConfig circleInputButtonConfig = const CircleInputButtonConfig(),
   GestureTapCallback onCancel,
+  Widget rightButton,
+  Widget Function(Function) deleteButton,
+  Widget Function(Function) cancelButton,
 }) {
   return Navigator.of(context).push(
     PageRouteBuilder(
@@ -43,6 +46,8 @@ Future showConfirmPasscode({
           backgroundColorOpacity: backgroundColorOpacity,
           circleInputButtonConfig: circleInputButtonConfig,
           onCancel: onCancel,
+          deleteButton: deleteButton,
+          cancelButton: cancelButton,
         );
       },
       transitionsBuilder: (
@@ -89,6 +94,8 @@ Future showLockScreen({
   CircleInputButtonConfig circleInputButtonConfig = const CircleInputButtonConfig(),
   void Function() onUnlocked,
   GestureTapCallback onCancel,
+  Widget Function(Function) deleteButton,
+  Widget Function(Function) cancelButton,
 }) {
   return Navigator.of(context).push(
     PageRouteBuilder(
@@ -127,6 +134,8 @@ Future showLockScreen({
           circleInputButtonConfig: circleInputButtonConfig,
           onUnlocked: onUnlocked,
           onCancel: onCancel,
+          deleteButton: deleteButton,
+          cancelButton: cancelButton,
         );
       },
       transitionsBuilder: (
@@ -158,7 +167,6 @@ class LockScreen extends StatefulWidget {
   final String title;
   final String confirmTitle;
   final bool confirmMode;
-  final Widget rightSideButton;
   final int digits;
   final DotSecretConfig dotSecretConfig;
   final CircleInputButtonConfig circleInputButtonConfig;
@@ -177,6 +185,8 @@ class LockScreen extends StatefulWidget {
   final double backgroundColorOpacity;
   final void Function() onUnlocked;
   final GestureTapCallback onCancel;
+  final Widget Function(Function) deleteButton;
+  final Widget Function(Function) cancelButton;
 
   LockScreen({
     this.correctString,
@@ -186,7 +196,6 @@ class LockScreen extends StatefulWidget {
     this.digits = 4,
     this.dotSecretConfig = const DotSecretConfig(),
     this.circleInputButtonConfig = const CircleInputButtonConfig(),
-    this.rightSideButton,
     this.canCancel = true,
     this.cancelText,
     this.deleteText,
@@ -201,6 +210,8 @@ class LockScreen extends StatefulWidget {
     this.backgroundColorOpacity = 0.5,
     this.onUnlocked,
     this.onCancel,
+    this.deleteButton,
+    this.cancelButton,
   });
 
   @override
@@ -515,49 +526,61 @@ class _LockScreenState extends State<LockScreen> {
           }
         }
       },
+      shape: CircleBorder(
+        side: BorderSide(
+          color: Colors.transparent,
+          style: BorderStyle.solid,
+        ),
+      ),
       color: Colors.transparent,
     );
   }
 
   Widget _rightSideButton() {
-    if (widget.rightSideButton != null) return widget.rightSideButton;
-
     return StreamBuilder<int>(
-        stream: enteredLengthStream.stream,
-        builder: (context, snapshot) {
-          String buttonText;
+      stream: enteredLengthStream.stream,
+      builder: (context, snapshot) {
+        void onPressed() {
           if (snapshot.hasData && snapshot.data > 0) {
-            buttonText = widget.deleteText;
-          } else if (widget.canCancel) {
-            buttonText = widget.cancelText;
+            removedStreamController.sink.add(null);
           } else {
-            return Container();
-          }
-
-          return FlatButton(
-            padding: EdgeInsets.all(0),
-            child: Text(
-              buttonText,
-              style: TextStyle(
-                fontSize: MediaQuery.of(context).size.width * 0.055,
-              ),
-              softWrap: false,
-              textAlign: TextAlign.center,
-            ),
-            onPressed: () {
-              if (snapshot.hasData && snapshot.data > 0) {
-                removedStreamController.sink.add(null);
-              } else {
-                if (widget.canCancel) {
-                  _needClose = true;
-                  Navigator.of(context).maybePop();
-                }
-              }
+            if (widget.canCancel) {
+              _needClose = true;
+              Navigator.of(context).maybePop();
               if (widget.onCancel != null) widget.onCancel();
-            },
-            color: Colors.transparent,
-          );
-        });
+            }
+          }
+        }
+
+        Widget btn;
+        String buttonText;
+        if (snapshot.hasData && snapshot.data > 0) {
+          if (widget.deleteButton != null) btn = widget.deleteButton(onPressed);
+          buttonText = widget.deleteText;
+        } else if (widget.canCancel) {
+          if (widget.cancelButton != null) btn = widget.cancelButton(onPressed);
+          buttonText = widget.cancelText;
+        } else {
+          return Container();
+        }
+
+        if (btn != null) return btn;
+
+        return FlatButton(
+          padding: EdgeInsets.all(0),
+          child: Text(
+            buttonText,
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.width * 0.055,
+            ),
+            softWrap: false,
+            textAlign: TextAlign.center,
+          ),
+          onPressed: onPressed,
+          color: Colors.transparent,
+        );
+      },
+    );
   }
 
   @override
