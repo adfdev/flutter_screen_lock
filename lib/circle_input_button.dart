@@ -5,12 +5,18 @@ class CircleInputButtonConfig {
   /// default `MediaQuery.of(context).size.width * 0.095`
   final TextStyle textStyle;
   final Color backgroundColor;
+  final Color highlightColor;
+  final Color splashColor;
+  final double highlightElevation;
   final double backgroundOpacity;
   final ShapeBorder shape;
 
   const CircleInputButtonConfig({
     this.textStyle,
     this.backgroundColor = const Color(0xFF757575),
+    this.highlightColor,
+    this.splashColor,
+    this.highlightElevation,
     this.backgroundOpacity = 0.4,
     this.shape,
   });
@@ -38,6 +44,9 @@ class CircleInputButton extends StatelessWidget {
         );
 
     return RaisedButton(
+      highlightColor: config.highlightColor,
+      splashColor: config.splashColor,
+      highlightElevation: config.highlightElevation,
       child: Text(
         text,
         style: textStyle,
